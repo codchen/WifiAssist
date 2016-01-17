@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Home Wifi Assistant</string>
+    <string name="action_settings">Settings</string>
+    <string name="edit_message">Enter a message</string>
+    <string name="button_send">Send</string>
+    <string name="pin_device">Pin device</string>
+    <string name="pin_ap">Pin AP</string>
+    <string name="clear">Clear all</string>
+    <string name="horizontal_zoom_in">h+</string>
+    <string name="horizontal_zoom_out">h-</string>
+    <string name="vertical_zoom_in">v+</string>
+    <string name="vertical_zoom_out">v-</string>
+    <string name="test">Speed test!</string>
+    <string name="title_activity_display_message">My Message</string>
+</resources>
