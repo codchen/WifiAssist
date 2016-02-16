@@ -28,6 +28,7 @@ import chen.xiaoyu.helloworld.MainActivity;
 import chen.xiaoyu.helloworld.R;
 
 /**
+ * Speed test module
  * Created by chenxiaoyu on 10/26/15.
  */
 public class SpeedTest extends AsyncTask<Void, Void, List<Double>> {
@@ -38,6 +39,8 @@ public class SpeedTest extends AsyncTask<Void, Void, List<Double>> {
 
     private final long overhead;
 
+    private final String username;
+
     private int serverResponseCode = 0;
     private final String upLoadServerUri = "http://tony.recg.rice.edu/UploadToServerDiscard.php";
     private final String dbRecordUri = "http://tony.recg.rice.edu/recordSpeed.php";
@@ -45,21 +48,22 @@ public class SpeedTest extends AsyncTask<Void, Void, List<Double>> {
     private ProgressDialog progressDialog;
     private Context context;
 
-    public SpeedTest(Context context) {
+    public SpeedTest(Context context, String username) {
         this.context = context;
         overhead = -(System.nanoTime() - System.nanoTime());
         Log.i("Nano call overhead ", String.valueOf(overhead));
+        this.username = username;
     }
 
     @Override
     protected void onPreExecute()
     {
         progressDialog= ProgressDialog.show(context, "Measuring network performance","Testing ping", true);
-    };
+    }
 
     protected List<Double> doInBackground(Void... params) {
-        final List<Double> ret = new ArrayList<Double>();
-        List<Double> res = new ArrayList<Double>();
+        final List<Double> ret = new ArrayList<>();
+        List<Double> res = new ArrayList<>();
 
         for (int i = 0; i < 10; i++) {
             double current = ping();
@@ -75,7 +79,7 @@ public class SpeedTest extends AsyncTask<Void, Void, List<Double>> {
 
         ret.add(sum / res.size());
         sum = 0;
-        res = new ArrayList<Double>();
+        res = new ArrayList<>();
 
         ((Activity)context).runOnUiThread(new Runnable() {
 
@@ -99,7 +103,7 @@ public class SpeedTest extends AsyncTask<Void, Void, List<Double>> {
 
         ret.add(sum / res.size());
         sum = 0;
-        res = new ArrayList<Double>();
+        res = new ArrayList<>();
 
         ((Activity)context).runOnUiThread(new Runnable() {
 
@@ -143,10 +147,7 @@ public class SpeedTest extends AsyncTask<Void, Void, List<Double>> {
                 sb.append((char)i);
             }
             return Double.parseDouble(sb.toString().split("time=")[1].split(" ms")[0]);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
         return -1.0;
@@ -195,8 +196,6 @@ public class SpeedTest extends AsyncTask<Void, Void, List<Double>> {
             if (totalTime == 0) totalTime = 1;
 
             return read / (double)totalTime * 1000000000L;
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -206,14 +205,14 @@ public class SpeedTest extends AsyncTask<Void, Void, List<Double>> {
     private double upload(int id, String name) {
         InputStream is = context.getResources().openRawResource(id);
 
-        HttpURLConnection conn = null;
-        DataOutputStream dos = null;
+        HttpURLConnection conn;
+        DataOutputStream dos;
         String lineEnd = "\r\n";
         String twoHyphens = "--";
         String boundary = "*****";
         int bytesRead, bytesAvailable, bufferSize;
         byte[] buffer;
-        int maxBufferSize = 1 * 1024 * 1024;
+        int maxBufferSize = 1024 * 1024;
 
         try {
 
@@ -297,7 +296,7 @@ public class SpeedTest extends AsyncTask<Void, Void, List<Double>> {
                     + serverResponseMessage + ": " + serverResponseCode);
 
             if(serverResponseCode == 200){
-                return (double)written / totalTime * 1000000000L;
+                return written / totalTime * 1000000000L;
             }
 
             //close the streams //
@@ -305,8 +304,6 @@ public class SpeedTest extends AsyncTask<Void, Void, List<Double>> {
             dos.flush();
             dos.close();
 
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -321,11 +318,11 @@ public class SpeedTest extends AsyncTask<Void, Void, List<Double>> {
         progressDialog.dismiss();
 
         Toast.makeText(context, String.valueOf(result.get(2)) + " Mbps", Toast.LENGTH_SHORT).show();
-    };
+    }
 
     private void writeToDB(List<Double> result) {
-        HttpURLConnection conn = null;
-        DataOutputStream dos = null;
+        HttpURLConnection conn;
+        DataOutputStream dos;
         String lineEnd = "\r\n";
         String twoHyphens = "--";
         String boundary = "*****";
@@ -347,7 +344,7 @@ public class SpeedTest extends AsyncTask<Void, Void, List<Double>> {
             dos = new DataOutputStream(conn.getOutputStream());
 
             dos.writeBytes("x=0&y=0&z=0&ping=" + result.get(0) + "&upload=" + result.get(1) + "&download="
-                    + result.get(2) + "&psd=0&usd=0&dsd=0&user=testuser");
+                    + result.get(2) + "&psd=0&usd=0&dsd=0&user="+username);
 
             // Responses from the server (code and message)
             serverResponseCode = conn.getResponseCode();
@@ -357,7 +354,7 @@ public class SpeedTest extends AsyncTask<Void, Void, List<Double>> {
                     + serverResponseMessage + ": " + serverResponseCode);
 
             BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String line = "", res = "";
+            String line, res = "";
             while ((line = rd.readLine()) != null) {
                 res += line;
             }
@@ -366,8 +363,6 @@ public class SpeedTest extends AsyncTask<Void, Void, List<Double>> {
             dos.flush();
             dos.close();
 
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }

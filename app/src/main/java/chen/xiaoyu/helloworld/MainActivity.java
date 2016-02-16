@@ -32,9 +32,12 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     private boolean pinAP = false;
     private CustomDrawableView myRect;
     private ViewGroup layout;
-    private Queue<View> devicePins = new LinkedList<View>();
-    private Queue<View> apPins = new LinkedList<View>();
+    private Queue<View> devicePins = new LinkedList<>();
+    private Queue<View> apPins = new LinkedList<>();
     private int topOffset;
+
+    private String username;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +60,17 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                         .setAction("Action", null).show();
             }
         });
+
+        if (savedInstanceState == null) {
+            Bundle extras = getIntent().getExtras();
+            if(extras == null) {
+                username = "unknown";
+            } else {
+                username = extras.getString("username");
+            }
+        } else {
+            username = (String) savedInstanceState.getSerializable("username");
+        }
     }
 
     private void getTopOffset() {
@@ -94,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     }
 
     public void executeTest (View view) {
-        new SpeedTest(this).execute();
+        new SpeedTest(this, username).execute();
     }
 
     public void pinDevice (View view) {
@@ -109,10 +123,10 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
 
     public void clearAll (View view) {
         while (devicePins.size() > 0) {
-            ((RelativeLayout) layout).removeView(devicePins.poll());
+            layout.removeView(devicePins.poll());
         }
         while (apPins.size() > 0) {
-            ((RelativeLayout) layout).removeView(apPins.poll());
+            layout.removeView(apPins.poll());
         }
     }
 
@@ -129,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                 View newPin = new DotView(this, x, y, Color.RED);
                 RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
                         RelativeLayout.LayoutParams.WRAP_CONTENT);
-                ((RelativeLayout) layout).addView(newPin, params);
+                layout.addView(newPin, params);
                 devicePins.add(newPin);
                 pinDev = false;
             }
@@ -141,7 +155,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                 View newPin = new DotView(this, x, y, Color.GREEN);
                 RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
                         RelativeLayout.LayoutParams.WRAP_CONTENT);
-                ((RelativeLayout) layout).addView(newPin, params);
+                layout.addView(newPin, params);
                 apPins.add(newPin);
                 pinAP = false;
             }
