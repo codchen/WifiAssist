@@ -11,6 +11,7 @@
     <string name="vertical_zoom_in">v+</string>
     <string name="vertical_zoom_out">v-</string>
     <string name="test">Speed test!</string>
+    <string name="heatmap">Get Heatmap</string>
     <string name="title_activity_display_message">My Message</string>
     <string name="title_activity_login">Sign in</string>
 

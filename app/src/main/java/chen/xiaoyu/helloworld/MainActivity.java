@@ -1,5 +1,6 @@
 package chen.xiaoyu.helloworld;
 
+import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -17,6 +18,13 @@ import android.support.v4.view.GestureDetectorCompat;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -32,11 +40,15 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     private boolean pinAP = false;
     private CustomDrawableView myRect;
     private ViewGroup layout;
-    private Queue<View> devicePins = new LinkedList<>();
-    private Queue<View> apPins = new LinkedList<>();
+    private DotView devicePin;
+    private Queue<DotView> apPins = new LinkedList<>();
+    private Queue<RectView> grids = new LinkedList<>();
     private int topOffset;
 
     private String username;
+    private int session;
+
+    private Context self = this;
 
 
     @Override
@@ -67,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
                 username = "unknown";
             } else {
                 username = extras.getString("username");
+                session = Integer.parseInt(extras.getString("session"));
             }
         } else {
             username = (String) savedInstanceState.getSerializable("username");
@@ -108,7 +121,44 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     }
 
     public void executeTest (View view) {
-        new SpeedTest(this, username).execute();
+        if (devicePin == null) return;
+        new SpeedTest(this, username, session, devicePin.xGrid, devicePin.yGrid).execute();
+    }
+
+    public void generateHeatmap(View view) {
+        // Instantiate the RequestQueue.
+        RequestQueue queue = Volley.newRequestQueue(this);
+        String url ="http://tony.recg.rice.edu/helloworld?user="+username+"&session="+session;
+
+        // Request a string response from the provided URL.
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        String[] rows = response.split("\\n");
+                        for (RectView grid: grids) {
+                            layout.removeView(grid);
+                        }
+                        grids = new LinkedList<>();
+                        for (int i = 0; i < rows.length; i++) {
+                            String[] vals = rows[i].split(" ");
+                            for (int j = 0; j < vals.length; j++) {
+                                RectView grid = new RectView(self, j, i, (int)(Color.RED * Double.parseDouble(vals[j])), myRect);
+                                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
+                                        RelativeLayout.LayoutParams.WRAP_CONTENT);
+                                layout.addView(grid, params);
+                                grids.add(grid);
+                            }
+                        }
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+            }
+        });
+        // Add the request to the RequestQueue.
+        queue.add(stringRequest);
     }
 
     public void pinDevice (View view) {
@@ -122,9 +172,7 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
     }
 
     public void clearAll (View view) {
-        while (devicePins.size() > 0) {
-            layout.removeView(devicePins.poll());
-        }
+        layout.removeView(devicePin);
         while (apPins.size() > 0) {
             layout.removeView(apPins.poll());
         }
@@ -140,11 +188,17 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
             int x = (int)e.getX();
             int y = (int)e.getY() - topOffset;
             if (myRect.getBoundingRect().contains(x, y)) {
-                View newPin = new DotView(this, x, y, Color.RED);
+                int xGridNum = myRect.getGridNumX(x);
+                int yGridNum = myRect.getGridNumY(y);
+                System.out.println(xGridNum);
+                System.out.println(yGridNum);
+                //do something with grid upload to db
+                DotView newPin = new DotView(this, xGridNum, yGridNum, Color.RED, myRect);
                 RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
                         RelativeLayout.LayoutParams.WRAP_CONTENT);
                 layout.addView(newPin, params);
-                devicePins.add(newPin);
+                layout.removeView(devicePin);
+                devicePin = newPin;
                 pinDev = false;
             }
         }
@@ -152,7 +206,9 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
             int x = (int)e.getX();
             int y = (int)e.getY() - topOffset;
             if (myRect.getBoundingRect().contains(x, y)) {
-                View newPin = new DotView(this, x, y, Color.GREEN);
+                int xGridNum = myRect.getGridNumX(x);
+                int yGridNum = myRect.getGridNumY(y);
+                DotView newPin = new DotView(this, xGridNum, yGridNum, Color.GREEN, myRect);
                 RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,
                         RelativeLayout.LayoutParams.WRAP_CONTENT);
                 layout.addView(newPin, params);
@@ -202,6 +258,13 @@ public class MainActivity extends AppCompatActivity implements GestureDetector.O
             float scaleFactorY = detector.getPreviousSpanY()>0?detector.getCurrentSpanY()/detector.getPreviousSpanY():1;
             scaleFactorY = Math.max(0.1f, Math.min(scaleFactorY, 5.0f));
             myRect.scale(scaleFactorX, scaleFactorY);
+            devicePin.update();
+            for (DotView apPin: apPins) {
+                apPin.update();
+            }
+            for (RectView grid: grids) {
+                grid.update();
+            }
             return true;
         }
     }

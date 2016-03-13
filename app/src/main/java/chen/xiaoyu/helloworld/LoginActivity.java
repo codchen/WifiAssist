@@ -56,6 +56,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
     private static final int REQUEST_READ_CONTACTS = 0;
     private final Activity self = this;
 
+    private String session = null;
+
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
@@ -344,7 +346,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
                 //close the streams //
                 dos.flush();
                 dos.close();
-                if (res.equals("success") || res.equals("New account added")) {
+                if (res.matches("^-?\\d+$") || res.equals("New account added")) {
+                    session = res;
                     return true;
                 }
             } catch (IOException e) {
@@ -362,6 +365,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderCallbacks<
             if (success) {
                 Intent intent = new Intent(self, MainActivity.class);
                 intent.putExtra("username", mEmail);
+                intent.putExtra("session", session);
                 startActivity(intent);
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));

@@ -40,6 +40,9 @@ public class SpeedTest extends AsyncTask<Void, Void, List<Double>> {
     private final long overhead;
 
     private final String username;
+    private final int session;
+    private final int x;
+    private final int y;
 
     private int serverResponseCode = 0;
     private final String upLoadServerUri = "http://tony.recg.rice.edu/UploadToServerDiscard.php";
@@ -48,11 +51,14 @@ public class SpeedTest extends AsyncTask<Void, Void, List<Double>> {
     private ProgressDialog progressDialog;
     private Context context;
 
-    public SpeedTest(Context context, String username) {
+    public SpeedTest(Context context, String username, int session, int x, int y) {
         this.context = context;
         overhead = -(System.nanoTime() - System.nanoTime());
         Log.i("Nano call overhead ", String.valueOf(overhead));
         this.username = username;
+        this.session = session;
+        this.x = x;
+        this.y = y;
     }
 
     @Override
@@ -343,8 +349,8 @@ public class SpeedTest extends AsyncTask<Void, Void, List<Double>> {
 
             dos = new DataOutputStream(conn.getOutputStream());
 
-            dos.writeBytes("x=0&y=0&z=0&ping=" + result.get(0) + "&upload=" + result.get(1) + "&download="
-                    + result.get(2) + "&psd=0&usd=0&dsd=0&user="+username);
+            dos.writeBytes("x="+x+"&y="+y+"&ping=" + result.get(0) + "&upload=" + result.get(1) + "&download="
+                    + result.get(2) + "&user="+username+"&session="+session);
 
             // Responses from the server (code and message)
             serverResponseCode = conn.getResponseCode();

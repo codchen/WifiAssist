@@ -39,8 +39,15 @@
         android:text="@string/test"
         android:layout_below="@id/appinbtn"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
         android:onClick="executeTest"/>
+
+    <Button android:id="@+id/heatmapbtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/heatmap"
+        android:layout_below="@id/clearbtn"
+        android:layout_alignParentRight="true"
+        android:onClick="generateHeatmap"/>
 
     <chen.xiaoyu.helloworld.CustomDrawableView android:id="@+id/rect"
         android:layout_width="wrap_content"

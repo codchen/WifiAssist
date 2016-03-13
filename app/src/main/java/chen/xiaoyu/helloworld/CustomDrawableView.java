@@ -18,8 +18,7 @@ import android.widget.ImageView;
  */
 public class CustomDrawableView extends View {
     private ShapeDrawable mDrawable;
-    private ImageView test;
-    private int centralX, centralY, width, height;
+    public int centralX, centralY, width, height;
     private int maxWidth, maxHeight;
 
     public CustomDrawableView(Context context, AttributeSet as) {
@@ -48,6 +47,7 @@ public class CustomDrawableView extends View {
     }
 
     public void scale(float scaleFactorX, float scaleFactorY) {
+        if ((width <= 200 && scaleFactorX < 1) || (height <= 200 && scaleFactorY < 1)) return;
         width *= scaleFactorX;
         height *= scaleFactorY;
         int x = centralX - width / 2;
@@ -59,7 +59,22 @@ public class CustomDrawableView extends View {
     }
 
     public Rect getBoundingRect() {
-        System.out.println(mDrawable.getBounds());
         return mDrawable.getBounds();
+    }
+
+    public int getGridNumX(int x) {
+        return (int)((x - mDrawable.getBounds().left) / (width / 10.0));
+    }
+
+    public int getGridNumY(int y) {
+        return (int)((y - mDrawable.getBounds().top) / (height / 10.0));
+    }
+
+    public int getGridSizeX() {
+        return (int)(width / 10.0);
+    }
+
+    public int getGridSizeY() {
+        return (int)(height / 10.0);
     }
 }
